@@ -4,6 +4,106 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
+    <RelativeLayout
+        android:id="@+id/previewLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp">
+
+        <TextView
+            android:id="@+id/textTemp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:textSize="20sp"
+            android:text="Current\nTemperature" />
+
+        <TextView
+            android:id="@+id/textSetpoint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="@dimen/activity_horizontal_margin"
+            android:textSize="20sp"
+            android:gravity="right"
+            android:text="Current\nSetpoint" />
+
+        <TextView
+            android:id="@+id/currentTemp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_marginTop="10dp"
+            android:layout_below="@id/textTemp"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:textSize="32sp"
+            android:text="-- F" />
+
+        <TextView
+            android:id="@+id/currentSetpoint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="20dp"
+            android:layout_below="@id/textSetpoint"
+            android:layout_marginRight="@dimen/activity_horizontal_margin"
+            android:textSize="32sp"
+            android:gravity="right"
+            android:text="-- F" />
+
+    </RelativeLayout>
+
+
+
+    <SeekBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:rotation="0"
+        android:id="@+id/tempBar"
+        android:layout_below="@id/previewLayout"
+        android:layout_marginBottom="40dp"
+        android:max="30"
+        android:progress="18"
+        android:layout_alignParentLeft="true"/>
+
+    <RelativeLayout
+        android:id="@+id/buttonLayout"
+        android:layout_below="@+id/tempBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <Button
+            android:id="@+id/setup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:text="Setup" />
+
+        <Button
+            android:id="@+id/submit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_alignParentTop="true"
+            android:text="Submit" />
+
+        <Button
+            android:id="@+id/refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="@dimen/activity_horizontal_margin"
+            android:text="Refresh" />
+
+        </RelativeLayout>
+
     <TextView
         android:id="@+id/tvIsConnected"
         android:layout_width="wrap_content"
@@ -11,48 +111,10 @@
         android:layout_gravity="center_horizontal"
         android:background="#FF0000"
         android:textColor="#FFF"
-        android:textSize="18dp"
-        android:text="is connected? "
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Current Temperature"
-        android:id="@+id/etResponse"
-        android:layout_gravity="center_horizontal"
+        android:textSize="18sp"
+        android:text="Is connected? "
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
 
-    <SeekBar
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:rotation="270"
-        android:id="@+id/tempBar"
-        android:layout_marginBottom="190dp"
-        android:max="30"
-        android:layout_above="@+id/etResponse"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Set Temperature"
-        android:id="@+id/tempPreview"
-        android:layout_marginTop="27dp"
-        android:layout_below="@+id/tvIsConnected"
-        android:layout_centerHorizontal="true" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Go!"
-        android:id="@+id/setTemp"
-        android:layout_below="@+id/tempPreview"
-        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

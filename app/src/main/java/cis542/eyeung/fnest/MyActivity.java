@@ -14,49 +14,54 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.InputType;
+import android.text.method.DigitsKeyListener;
 import android.util.Log;
-import android.view.View;
+import android.view.*;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.app.Activity;
 import android.widget.Toast;
 
 public class MyActivity extends Activity {
 
-    TextView etResponse;
-    TextView tvIsConnected;
+    TextView currentSetpoint;
+    TextView currentTemp;
     SeekBar tempBar;
-    TextView tempPreview;
+    TextView tvIsConnected;
     Uri.Builder urlBase;
+
+    String ip = "10.0.0.1";
+    String port = "5000";
 
     private class HttpAsyncTask extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... urls) {
-
             return GET(urls[0]);
         }
         // onPostExecute displays the results of the AsyncTask.
         @Override
         protected void onPostExecute(String result) {
-            Toast.makeText(getBaseContext(), "Success!", Toast.LENGTH_LONG).show();
+            Toast.makeText(getBaseContext(), "Request sent!!", Toast.LENGTH_LONG).show();
             JSONObject response;
             try {
                 response = new JSONObject(result);
                 String temp = response.getString("temp");
-                etResponse.setText("Current Temperature: " + temp);
-                tempBar.setProgress(Integer.parseInt(temp) - 50);
-                tempPreview.setText("Set Temperature to: " + temp);
+                String setpoint = response.getString("setpoint");
+                currentTemp.setText(temp + " F");
+                currentSetpoint.setText(setpoint + " F");
+                tempBar.setProgress(Integer.parseInt(setpoint) - 50);
 
             } catch (JSONException e) {
-                etResponse.setText("Error getting response!");
-
+                tvIsConnected.setText("Error getting response!");
             }
         }
     }
@@ -70,29 +75,31 @@ public class MyActivity extends Activity {
         setContentView(R.layout.activity_my);
 
         // get reference to the views
-        etResponse = (TextView) findViewById(R.id.etResponse);
+        currentSetpoint = (TextView) findViewById(R.id.currentSetpoint);
+        currentTemp = (TextView) findViewById(R.id.currentTemp);
         tvIsConnected = (TextView) findViewById(R.id.tvIsConnected);
         tempBar = (SeekBar) findViewById(R.id.tempBar);
-        tempPreview = (TextView) findViewById((R.id.tempPreview));
 
         setupSeekBar();
         setupSubmitButton();
+        setupRefreshButton();
+        setupSetupButton();
         // check if you are connected or not
         if(isConnected()){
             tvIsConnected.setBackgroundColor(0xFF00CC00);
-            tvIsConnected.setText("You are connected");
+            tvIsConnected.setText("");
         }
         else{
-            tvIsConnected.setText("You are NOT conncted");
+            tvIsConnected.setText("No network connection");
         }
 
-        urlBase = Uri.parse("http://10.0.3.2:5000").buildUpon();
+//        urlBase = Uri.parse("http://10.0.3.2:5000").buildUpon();
+        urlBase = Uri.parse("http://" + ip + ":" + port).buildUpon();
 
         Uri u = urlBase.path("getTemp")
-//                .appendQueryParameter("temp", Integer.toString(50))
                 .build();
 
-        System.out.println("u.toString() = " + u.toString());
+        Log.w("fnest", "u.toString() = " + u.toString());
         //call AsyncTask to perform network operation
         new HttpAsyncTask().execute(u.toString());
 
@@ -102,7 +109,7 @@ public class MyActivity extends Activity {
         tempBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                tempPreview.setText("Set Temperature to: " + Integer.toString(progress + 50));
+                currentSetpoint.setText(Integer.toString(progress + 50) + " F");
             }
 
             @Override
@@ -115,19 +122,95 @@ public class MyActivity extends Activity {
 
             }
         });
+        tempBar.setProgress(68-50);
+        currentSetpoint.setText(Integer.toString(tempBar.getProgress() + 50) + " F");
     }
 
     public void setupSubmitButton() {
-        final Button submit = (Button) findViewById(R.id.setTemp);
+        final Button submit = (Button) findViewById(R.id.submit);
         submit.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Integer temp = tempBar.getProgress() + 50;
+                Integer setpoint = tempBar.getProgress() + 50;
                 Uri u = urlBase.path("setTemp")
                         .clearQuery()
-                        .appendQueryParameter("temp", Integer.toString(temp))
+                        .appendQueryParameter("setpoint", Integer.toString(setpoint))
                         .build();
                 System.out.println("u.toString() submit = " + u.toString());
                 new HttpAsyncTask().execute(u.toString());
+            }
+        });
+    }
+
+    public void setupRefreshButton() {
+        final Button refresh = (Button) findViewById(R.id.refresh);
+        refresh.setOnClickListener(new View.OnClickListener() {
+           public void onClick(View v) {
+               Uri u = urlBase.path("getTemp")
+                       .clearQuery()
+                       .build();
+               Log.w("fnest", "u.toString() refresh = " + u.toString());
+               new HttpAsyncTask().execute(u.toString());
+           }
+        });
+    }
+
+    public void setupSetupButton() {
+        final android.content.Context c = this;
+
+        final Button setup = (Button) findViewById(R.id.setup);
+        setup.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                AlertDialog.Builder alert = new AlertDialog.Builder(c);
+                alert.setTitle("Setup Server");
+                alert.setMessage("Input server IP");
+                final EditText inputIP = new IPAddressText(c);
+                alert.setView(inputIP);
+                alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        final String tempip = inputIP.getText().toString();
+                        if (tempip.isEmpty()) {
+                            return;
+                        }
+
+                        AlertDialog.Builder alert = new AlertDialog.Builder(c);
+                        alert.setTitle("Setup Server");
+                        alert.setMessage("Input server Port");
+                        final EditText inputPort = new EditText(c);
+                        inputPort.setInputType(InputType.TYPE_CLASS_NUMBER);
+                        inputPort.setKeyListener(DigitsKeyListener.getInstance());
+                        alert.setView(inputPort);
+                        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                String tempport = inputPort.getText().toString();
+                                if (tempport.isEmpty()) {
+                                    return;
+                                }
+
+                                ip = tempip;
+                                port = tempport;
+                                tvIsConnected.setText(ip + ":" + port);
+                            }
+                        });
+                        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        });
+                        alert.show();
+                    }
+                });
+                alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                });
+                alert.show();
+
+
             }
         });
     }
@@ -168,7 +251,6 @@ public class MyActivity extends Activity {
             result += line;
         inputStream.close();
         return result;
-
     }
 
     // check network connection
