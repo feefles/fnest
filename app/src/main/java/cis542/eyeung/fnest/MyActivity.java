@@ -40,7 +40,7 @@ public class MyActivity extends Activity {
     Uri.Builder urlBase;
 
     String ip = "10.0.0.1";
-    String port = "5000";
+    String port = "3933";
 
     private class HttpAsyncTask extends AsyncTask<String, Void, String> {
         @Override
