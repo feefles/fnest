@@ -39,7 +39,7 @@ public class MyActivity extends Activity {
     TextView tvIsConnected;
     Uri.Builder urlBase;
 
-    String ip = "10.0.0.1";
+    String ip = "10.0.0.10";
     String port = "3933";
 
     private class HttpAsyncTask extends AsyncTask<String, Void, String> {
@@ -54,12 +54,12 @@ public class MyActivity extends Activity {
             JSONObject response;
             try {
                 response = new JSONObject(result);
-                String temp = response.getString("temp");
-                String setpoint = response.getString("setpoint");
+                String temp = response.getString("cur_temp");
+                String setpoint = response.getString("set_temp");
                 currentTemp.setText(temp + " F");
                 currentSetpoint.setText(setpoint + " F");
                 tempBar.setProgress(Integer.parseInt(setpoint) - 50);
-
+                tvIsConnected.setText("Response received");
             } catch (JSONException e) {
                 tvIsConnected.setText("Error getting response!");
             }
