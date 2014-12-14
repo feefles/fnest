@@ -1,14 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
+    <ImageView
+        android:id="@+id/logo"
+        android:src="@drawable/ic_fnest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"/>
+
     <RelativeLayout
         android:id="@+id/previewLayout"
+        android:layout_below="@id/logo"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp">
+        android:layout_height="wrap_content">
 
         <TextView
             android:id="@+id/textTemp"
@@ -59,22 +68,44 @@
 
 
 
-    <SeekBar
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:rotation="0"
+    <!--<SeekBar-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:rotation="0"-->
+        <!--android:id="@+id/tempBar"-->
+        <!--android:layout_below="@id/previewLayout"-->
+        <!--android:layout_marginBottom="40dp"-->
+        <!--android:max="30"-->
+        <!--android:progress="18"-->
+        <!--android:layout_alignParentLeft="true"/>-->
+
+    <com.devadvance.circularseekbar.CircularSeekBar
         android:id="@+id/tempBar"
-        android:layout_below="@id/previewLayout"
-        android:layout_marginBottom="40dp"
-        android:max="30"
-        android:progress="18"
-        android:layout_alignParentLeft="true"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/logo"
+        android:layout_marginTop="120dp"
+        app:lock_enabled="true"
+        app:start_angle="220"
+        app:end_angle="320"
+        app:circle_x_radius="200"
+        app:progress="14"
+        app:max="30"
+        app:pointer_alpha_ontouch="100"
+        app:pointer_color="#33b5e5"
+        app:pointer_halo_color="#aa33b5e5"
+        app:pointer_radius="4"
+        app:circle_color="#111111"
+        app:circle_stroke_width="2"
+        app:circle_progress_color="#33b5e5"
+        app:circle_progress_stroke_width="4"/>
 
     <RelativeLayout
         android:id="@+id/buttonLayout"
-        android:layout_below="@+id/tempBar"
+        android:layout_below="@+id/previewLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:layout_marginTop="150dp">
 
         <Button
             android:id="@+id/setup"

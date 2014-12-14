@@ -31,11 +31,13 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.devadvance.circularseekbar.CircularSeekBar;
+
 public class MyActivity extends Activity {
 
     TextView currentSetpoint;
     TextView currentTemp;
-    SeekBar tempBar;
+    CircularSeekBar tempBar;
     TextView tvIsConnected;
     Uri.Builder urlBase;
 
@@ -78,7 +80,7 @@ public class MyActivity extends Activity {
         currentSetpoint = (TextView) findViewById(R.id.currentSetpoint);
         currentTemp = (TextView) findViewById(R.id.currentTemp);
         tvIsConnected = (TextView) findViewById(R.id.tvIsConnected);
-        tempBar = (SeekBar) findViewById(R.id.tempBar);
+        tempBar = (CircularSeekBar) findViewById(R.id.tempBar);
 
         setupSeekBar();
         setupSubmitButton();
@@ -106,19 +108,19 @@ public class MyActivity extends Activity {
     }
 
     public void setupSeekBar() {
-        tempBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        tempBar.setOnSeekBarChangeListener(new CircularSeekBar.OnCircularSeekBarChangeListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            public void onProgressChanged(CircularSeekBar seekBar, int progress, boolean fromUser) {
                 currentSetpoint.setText(Integer.toString(progress + 50) + " F");
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
+            public void onStartTrackingTouch(CircularSeekBar seekBar) {
 
             }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
+            public void onStopTrackingTouch(CircularSeekBar seekBar) {
 
             }
         });
