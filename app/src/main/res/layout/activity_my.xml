@@ -7,7 +7,7 @@
 
     <ImageView
         android:id="@+id/logo"
-        android:src="@drawable/ic_fnest"
+        android:src="@drawable/ic_freenest"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
