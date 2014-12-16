@@ -52,7 +52,7 @@ public class MyActivity extends Activity {
         // onPostExecute displays the results of the AsyncTask.
         @Override
         protected void onPostExecute(String result) {
-            Toast.makeText(getBaseContext(), "Request sent!!", Toast.LENGTH_LONG).show();
+            //Toast.makeText(getBaseContext(), "Request sent!!", Toast.LENGTH_LONG).show();
             JSONObject response;
             try {
                 response = new JSONObject(result);
@@ -67,9 +67,6 @@ public class MyActivity extends Activity {
             }
         }
     }
-
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,18 +91,19 @@ public class MyActivity extends Activity {
         else{
             tvIsConnected.setText("No network connection");
         }
-
-//        urlBase = Uri.parse("http://10.0.3.2:5000").buildUpon();
-        urlBase = Uri.parse("http://" + ip + ":" + port).buildUpon();
-
-        Uri u = urlBase.path("getTemp")
-                .build();
-
-        Log.w("fnest", "u.toString() = " + u.toString());
-        //call AsyncTask to perform network operation
-        new HttpAsyncTask().execute(u.toString());
-
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Uri u = urlBase.path("getTemp")
+                .clearQuery()
+                .build();
+        Log.w("fnest", "u.toString() refresh = " + u.toString());
+        new HttpAsyncTask().execute(u.toString());
+    }
+
+
 
     public void setupSeekBar() {
         tempBar.setOnSeekBarChangeListener(new CircularSeekBar.OnCircularSeekBarChangeListener() {
