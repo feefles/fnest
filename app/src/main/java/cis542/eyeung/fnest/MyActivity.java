@@ -67,7 +67,8 @@ public class MyActivity extends Activity {
     }
 
     private void getTemp() {
-        Uri u = urlBase.path("getTemp")
+        Uri.Builder u = Uri.parse("http://" + ip + ":" + port).buildUpon();
+        u.path("getTemp")
                 .clearQuery()
                 .build();
         Log.w("fnest", "u.toString() getTemp = " + u.toString());
@@ -75,7 +76,8 @@ public class MyActivity extends Activity {
     }
 
     private void setTemp(int setpoint) {
-        Uri u = urlBase.path("setTemp")
+        Uri.Builder u = Uri.parse("http://" + ip + ":" + port).buildUpon();
+        u.path("setTemp")
                 .clearQuery()
                 .appendQueryParameter("setpoint", Integer.toString(setpoint))
                 .build();
@@ -106,6 +108,8 @@ public class MyActivity extends Activity {
         else{
             tvIsConnected.setText("No network connection");
         }
+        urlBase = new Uri.Builder();
+        urlBase.scheme("http");
     }
 
     @Override
