@@ -27,9 +27,7 @@ import android.util.Log;
 import android.view.*;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.devadvance.circularseekbar.CircularSeekBar;
 
@@ -68,6 +66,23 @@ public class MyActivity extends Activity {
         }
     }
 
+    private void getTemp() {
+        Uri u = urlBase.path("getTemp")
+                .clearQuery()
+                .build();
+        Log.w("fnest", "u.toString() getTemp = " + u.toString());
+        new HttpAsyncTask().execute(u.toString());
+    }
+
+    private void setTemp(int setpoint) {
+        Uri u = urlBase.path("setTemp")
+                .clearQuery()
+                .appendQueryParameter("setpoint", Integer.toString(setpoint))
+                .build();
+        Log.w("fnest", "u.toString() setTemp = " + u.toString());
+        new HttpAsyncTask().execute(u.toString());
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,11 +111,7 @@ public class MyActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        Uri u = urlBase.path("getTemp")
-                .clearQuery()
-                .build();
-        Log.w("fnest", "u.toString() refresh = " + u.toString());
-        new HttpAsyncTask().execute(u.toString());
+        getTemp();
     }
 
 
@@ -114,12 +125,10 @@ public class MyActivity extends Activity {
 
             @Override
             public void onStartTrackingTouch(CircularSeekBar seekBar) {
-
             }
 
             @Override
             public void onStopTrackingTouch(CircularSeekBar seekBar) {
-
             }
         });
         tempBar.setProgress(68-50);
@@ -131,12 +140,7 @@ public class MyActivity extends Activity {
         submit.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Integer setpoint = tempBar.getProgress() + 50;
-                Uri u = urlBase.path("setTemp")
-                        .clearQuery()
-                        .appendQueryParameter("setpoint", Integer.toString(setpoint))
-                        .build();
-                System.out.println("u.toString() submit = " + u.toString());
-                new HttpAsyncTask().execute(u.toString());
+                setTemp(setpoint);
             }
         });
     }
@@ -145,11 +149,7 @@ public class MyActivity extends Activity {
         final Button refresh = (Button) findViewById(R.id.refresh);
         refresh.setOnClickListener(new View.OnClickListener() {
            public void onClick(View v) {
-               Uri u = urlBase.path("getTemp")
-                       .clearQuery()
-                       .build();
-               Log.w("fnest", "u.toString() refresh = " + u.toString());
-               new HttpAsyncTask().execute(u.toString());
+               getTemp();
            }
         });
     }
@@ -216,27 +216,21 @@ public class MyActivity extends Activity {
     }
 
     public static String GET(String url){
-        InputStream inputStream = null;
+        InputStream inputStream;
         String result = "";
         try {
 
-            // create HttpClient
             HttpClient httpclient = new DefaultHttpClient();
-
-            // make GET request to the given URL
             HttpResponse httpResponse = httpclient.execute(new HttpGet(url));
-
-            // receive response as inputStream
             inputStream = httpResponse.getEntity().getContent();
 
-            // convert inputstream to string
             if(inputStream != null)
                 result = convertInputStreamToString(inputStream);
             else
                 result = "Did not work!";
 
         } catch (Exception e) {
-            Log.d("InputStream", e.getLocalizedMessage());
+            Log.d("fnest", e.getLocalizedMessage());
         }
 
         return result;
@@ -245,7 +239,7 @@ public class MyActivity extends Activity {
     // convert inputstream to String
     private static String convertInputStreamToString(InputStream inputStream) throws IOException{
         BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
-        String line = "";
+        String line;
         String result = "";
         while((line = bufferedReader.readLine()) != null)
             result += line;
@@ -255,12 +249,9 @@ public class MyActivity extends Activity {
 
     // check network connection
     public boolean isConnected(){
-        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(this.CONNECTIVITY_SERVICE);
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isConnected())
-            return true;
-        else
-            return false;
+        return (networkInfo != null && networkInfo.isConnected());
     }
 
 }
