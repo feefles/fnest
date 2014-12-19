@@ -136,12 +136,22 @@
         </RelativeLayout>
 
     <TextView
+        android:id="@+id/currentserver"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#ffffffff"
+        android:textSize="18sp"
+        android:text="---.---.---.---:----"
+        android:layout_above="@+id/tvIsConnected"
+        android:layout_centerHorizontal="true"/>
+
+    <TextView
         android:id="@+id/tvIsConnected"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:background="#FF0000"
-        android:textColor="#FFF"
+        android:background="#ffff0000"
+        android:textColor="#ffffffff"
         android:textSize="18sp"
         android:text="Is connected? "
         android:layout_alignParentBottom="true"

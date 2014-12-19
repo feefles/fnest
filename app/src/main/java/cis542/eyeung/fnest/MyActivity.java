@@ -7,6 +7,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -16,6 +20,7 @@ import org.json.JSONObject;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -30,17 +35,22 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.devadvance.circularseekbar.CircularSeekBar;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public class MyActivity extends Activity {
 
-    TextView currentSetpoint;
-    TextView currentTemp;
-    CircularSeekBar tempBar;
-    TextView tvIsConnected;
-    Uri.Builder urlBase;
+    private TextView currentSetpoint;
+    private TextView currentTemp;
+    private CircularSeekBar tempBar;
+    private TextView tvIsConnected;
+    private TextView tvCurrServ;
+    private Uri.Builder urlBase;
 
-    String ip = "10.0.0.10";
-    String port = "3933";
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor preferenceEditor;
+    private fNestServer currentServer;
+    private List<fNestServer> serverList;
 
     private class HttpAsyncTask extends AsyncTask<String, Void, String> {
         @Override
@@ -67,7 +77,7 @@ public class MyActivity extends Activity {
     }
 
     private void getTemp() {
-        Uri.Builder u = Uri.parse("http://" + ip + ":" + port).buildUpon();
+        Uri.Builder u = Uri.parse("http://" + currentServer.toString()).buildUpon();
         u.path("getTemp")
                 .clearQuery()
                 .build();
@@ -76,7 +86,7 @@ public class MyActivity extends Activity {
     }
 
     private void setTemp(int setpoint) {
-        Uri.Builder u = Uri.parse("http://" + ip + ":" + port).buildUpon();
+        Uri.Builder u = Uri.parse("http://" + currentServer.toString()).buildUpon();
         u.path("setTemp")
                 .clearQuery()
                 .appendQueryParameter("setpoint", Integer.toString(setpoint))
@@ -94,6 +104,7 @@ public class MyActivity extends Activity {
         currentSetpoint = (TextView) findViewById(R.id.currentSetpoint);
         currentTemp = (TextView) findViewById(R.id.currentTemp);
         tvIsConnected = (TextView) findViewById(R.id.tvIsConnected);
+        tvCurrServ = (TextView) findViewById(R.id.currentserver);
         tempBar = (CircularSeekBar) findViewById(R.id.tempBar);
 
         setupSeekBar();
@@ -112,13 +123,46 @@ public class MyActivity extends Activity {
         urlBase.scheme("http");
     }
 
+    protected void onStart() {
+        Log.d("fnest", "onStart()");
+        super.onStart();
+
+        // Load preferences and set initial server
+        sharedPreferences = getSharedPreferences("fnest", MODE_PRIVATE);
+        preferenceEditor = sharedPreferences.edit();
+
+        if (sharedPreferences.contains("fnest-servers")) {
+            String json = sharedPreferences.getString("fnest-servers", null);
+            Type type = new TypeToken<List<fNestServer>>(){}.getType();
+            serverList = new Gson().fromJson(json, type);
+            currentServer = serverList.get(serverList.size() - 1);
+        }
+        else {
+            serverList = new ArrayList<fNestServer>();
+            currentServer = new fNestServer();
+            serverList.add(currentServer);
+        }
+
+        tvCurrServ.setText(currentServer.toString());
+    }
+
+    protected void onStop() {
+        Log.d("fnest", "onStop()");
+        super.onStop();
+
+        String json = new Gson().toJson(serverList);
+        Log.d("fnest", "writing json: " + json);
+        preferenceEditor.clear();
+        preferenceEditor.putString("fnest-servers", json);
+        preferenceEditor.commit();
+    }
+
     @Override
     protected void onResume() {
+        Log.d("fnest", "onResume()");
         super.onResume();
         getTemp();
     }
-
-
 
     public void setupSeekBar() {
         tempBar.setOnSeekBarChangeListener(new CircularSeekBar.OnCircularSeekBarChangeListener() {
@@ -192,9 +236,9 @@ public class MyActivity extends Activity {
                                     return;
                                 }
 
-                                ip = tempip;
-                                port = tempport;
-                                tvIsConnected.setText(ip + ":" + port);
+                                currentServer = new fNestServer(tempip, tempport);
+                                serverList.add(currentServer);
+                                tvCurrServ.setText(currentServer.toString());
                             }
                         });
                         alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -213,9 +257,18 @@ public class MyActivity extends Activity {
                     }
                 });
                 alert.show();
-
-
             }
+//            public void onClick(View v) {
+//                AlertDialog.Builder alert = new AlertDialog.Builder(c);
+//                alert.setTitle("Setup");
+//                CharSequence[] cs = serverList.toArray(new CharSequence[serverList.size()]);
+//                alert.setItems(cs, new DialogInterface.OnClickListener() {
+//                    public void onClick(DialogInterface dialog, int item) {
+//
+//                    }
+//                });
+//                alert.create().show();
+//            }
         });
     }
 
