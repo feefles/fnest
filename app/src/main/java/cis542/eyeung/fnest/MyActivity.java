@@ -45,10 +45,8 @@ public class MyActivity extends Activity {
     private CircularSeekBar tempBar;
     private TextView tvIsConnected;
     private TextView tvCurrServ;
-    private Uri.Builder urlBase;
 
     private SharedPreferences sharedPreferences;
-    private SharedPreferences.Editor preferenceEditor;
     private fNestServer currentServer;
     private List<fNestServer> serverList;
 
@@ -119,8 +117,6 @@ public class MyActivity extends Activity {
         else{
             tvIsConnected.setText("No network connection");
         }
-        urlBase = new Uri.Builder();
-        urlBase.scheme("http");
     }
 
     protected void onStart() {
@@ -129,7 +125,7 @@ public class MyActivity extends Activity {
 
         // Load preferences and set initial server
         sharedPreferences = getSharedPreferences("fnest", MODE_PRIVATE);
-        preferenceEditor = sharedPreferences.edit();
+
 
         if (sharedPreferences.contains("fnest-servers")) {
             String json = sharedPreferences.getString("fnest-servers", null);
@@ -152,9 +148,10 @@ public class MyActivity extends Activity {
 
         String json = new Gson().toJson(serverList);
         Log.d("fnest", "writing json: " + json);
+        SharedPreferences.Editor preferenceEditor = sharedPreferences.edit();
         preferenceEditor.clear();
         preferenceEditor.putString("fnest-servers", json);
-        preferenceEditor.commit();
+        preferenceEditor.apply();
     }
 
     @Override
