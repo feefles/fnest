@@ -146,7 +146,7 @@ public class MyActivity extends Activity {
         Log.d("fnest", "onStop()");
         super.onStop();
 
-        String json = new Gson().toJson(serverList);
+        String json = new Gson().toJson(serverList.subList(Math.max(0,serverList.size() - 5), serverList.size() - 1));
         Log.d("fnest", "writing json: " + json);
         SharedPreferences.Editor preferenceEditor = sharedPreferences.edit();
         preferenceEditor.clear();
