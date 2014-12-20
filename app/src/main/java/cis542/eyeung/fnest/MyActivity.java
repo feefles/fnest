@@ -53,7 +53,14 @@ public class MyActivity extends Activity {
     private class HttpAsyncTask extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... urls) {
-            return GET(urls[0]);
+            final String url0 = urls[0];
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    tvIsConnected.setText("Pending " + url0);
+                }
+            });
+            return GET(url0);
         }
         // onPostExecute displays the results of the AsyncTask.
         @Override
@@ -62,8 +69,8 @@ public class MyActivity extends Activity {
             JSONObject response;
             try {
                 response = new JSONObject(result);
-                String temp = response.getString("cur_temp");
-                String setpoint = response.getString("set_temp");
+                final String temp = response.getString("cur_temp");
+                final String setpoint = response.getString("set_temp");
                 currentTemp.setText(temp + " F");
                 currentSetpoint.setText(setpoint + " F");
                 tempBar.setProgress(Integer.parseInt(setpoint) - 50);
