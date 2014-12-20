@@ -136,11 +136,13 @@ public class MyActivity extends Activity {
 
         if (sharedPreferences.contains("fnest-servers")) {
             String json = sharedPreferences.getString("fnest-servers", null);
+            Log.d("fnest", "Loading json " + json);
             Type type = new TypeToken<List<fNestServer>>(){}.getType();
             serverList = new Gson().fromJson(json, type);
             currentServer = serverList.get(serverList.size() - 1);
         }
         else {
+            Log.d("fnest", "No json to load, starting with" + currentServer.toString());
             serverList = new ArrayList<fNestServer>();
             currentServer = new fNestServer();
             serverList.add(currentServer);
@@ -153,7 +155,8 @@ public class MyActivity extends Activity {
         Log.d("fnest", "onStop()");
         super.onStop();
 
-        String json = new Gson().toJson(serverList.subList(Math.max(0,serverList.size() - 5), serverList.size() - 1));
+        String json = new Gson().toJson(serverList.subList(Math.max(0,serverList.size() - 5), serverList.size()));
+        Log.d("fnest", "serverList is of size" + String.format("%d", serverList.size()));
         Log.d("fnest", "writing json: " + json);
         SharedPreferences.Editor preferenceEditor = sharedPreferences.edit();
         preferenceEditor.clear();
@@ -262,17 +265,6 @@ public class MyActivity extends Activity {
                 });
                 alert.show();
             }
-//            public void onClick(View v) {
-//                AlertDialog.Builder alert = new AlertDialog.Builder(c);
-//                alert.setTitle("Setup");
-//                CharSequence[] cs = serverList.toArray(new CharSequence[serverList.size()]);
-//                alert.setItems(cs, new DialogInterface.OnClickListener() {
-//                    public void onClick(DialogInterface dialog, int item) {
-//
-//                    }
-//                });
-//                alert.create().show();
-//            }
         });
     }
 
