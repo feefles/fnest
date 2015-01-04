@@ -19,11 +19,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.InputType;
@@ -49,6 +52,11 @@ public class MyActivity extends Activity {
     private SharedPreferences sharedPreferences;
     private fNestServer currentServer;
     private List<fNestServer> serverList;
+
+    private boolean homeWifi;
+    private String homeWifiSSID;
+    private fNestServer homeServer;
+
 
     private class HttpAsyncTask extends AsyncTask<String, Void, String> {
         @Override
@@ -81,8 +89,20 @@ public class MyActivity extends Activity {
         }
     }
 
+    private fNestServer getServer() {
+        isConnected();
+        if (homeWifi) {
+            Log.d("fnest", "getServer() - on home server");
+            return homeServer;
+        }
+        else {
+            Log.d("fnest", "getServer() - not at home");
+            return currentServer;
+        }
+    }
+
     private void getTemp() {
-        Uri.Builder u = Uri.parse("http://" + currentServer.toString()).buildUpon();
+        Uri.Builder u = Uri.parse("http://" + getServer().toString()).buildUpon();
         u.path("getTemp")
                 .clearQuery()
                 .build();
@@ -91,7 +111,7 @@ public class MyActivity extends Activity {
     }
 
     private void setTemp(int setpoint) {
-        Uri.Builder u = Uri.parse("http://" + currentServer.toString()).buildUpon();
+        Uri.Builder u = Uri.parse("http://" + getServer().toString()).buildUpon();
         u.path("setTemp")
                 .clearQuery()
                 .appendQueryParameter("setpoint", Integer.toString(setpoint))
@@ -148,6 +168,19 @@ public class MyActivity extends Activity {
             serverList.add(currentServer);
         }
 
+        if (sharedPreferences.contains("fnest-homeserver")) {
+            String json = sharedPreferences.getString("fnest-homeserver", null);
+            Log.d("fnest", "Loading homeserver json " + json);
+            Type type = new TypeToken<fNestServer>(){}.getType();
+            homeServer = new Gson().fromJson(json, type);
+            homeWifiSSID = sharedPreferences.getString("fnest-homeSSID", null);
+        }
+        else {
+            Log.d("fnest", "No homeserver json to load");
+            homeServer = new fNestServer();
+            homeWifiSSID = "PrettyFlyForAWifi";
+        }
+
         tvCurrServ.setText(currentServer.toString());
     }
 
@@ -155,11 +188,18 @@ public class MyActivity extends Activity {
         Log.d("fnest", "onStop()");
         super.onStop();
 
-        String json = new Gson().toJson(serverList.subList(Math.max(0,serverList.size() - 5), serverList.size()));
-        Log.d("fnest", "serverList is of size" + String.format("%d", serverList.size()));
-        Log.d("fnest", "writing json: " + json);
         SharedPreferences.Editor preferenceEditor = sharedPreferences.edit();
         preferenceEditor.clear();
+
+        String json = new Gson().toJson(homeServer);
+        Log.d("fnest", "writing homeServer json: " + json);
+        preferenceEditor.putString("fnest-homeserver", json);
+        preferenceEditor.putString("fnest-homeSSID", homeWifiSSID);
+        preferenceEditor.apply();
+
+        json = new Gson().toJson(serverList.subList(Math.max(0,serverList.size() - 5), serverList.size()));
+        Log.d("fnest", "serverList is of size" + String.format("%d", serverList.size()));
+        Log.d("fnest", "writing json: " + json);
         preferenceEditor.putString("fnest-servers", json);
         preferenceEditor.apply();
     }
@@ -225,6 +265,7 @@ public class MyActivity extends Activity {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         final String tempip = inputIP.getText().toString();
                         if (tempip.isEmpty()) {
+                            Log.d("fnest", "no ip entered");
                             return;
                         }
 
@@ -238,14 +279,50 @@ public class MyActivity extends Activity {
                         alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                String tempport = inputPort.getText().toString();
+                                final String tempport = inputPort.getText().toString();
                                 if (tempport.isEmpty()) {
+                                    Log.d("fnest", "no port entered");
                                     return;
                                 }
 
-                                currentServer = new fNestServer(tempip, tempport);
-                                serverList.add(currentServer);
-                                tvCurrServ.setText(currentServer.toString());
+                                AlertDialog.Builder alert = new AlertDialog.Builder(c);
+                                alert.setTitle("Setup Server");
+                                alert.setMessage("Set as home wifi Server?");
+                                alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        homeServer = new fNestServer(tempip, tempport);
+                                        currentServer = homeServer;
+                                        tvCurrServ.setText(currentServer.toString());
+
+                                        AlertDialog.Builder alert = new AlertDialog.Builder(c);
+                                        alert.setTitle("Setup Server");
+                                        alert.setMessage("Enter SSID");
+                                        final EditText inputSSID = new EditText(c);
+                                        inputSSID.setInputType(InputType.TYPE_CLASS_TEXT);
+                                        alert.setView(inputSSID);
+                                        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                String tempSSID = inputSSID.getText().toString();
+                                                if (!tempSSID.isEmpty()) {
+                                                    homeWifiSSID = tempSSID;
+                                                }
+                                            }
+                                        });
+                                        alert.show();
+
+                                    }
+                                });
+                                alert.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        currentServer = new fNestServer(tempip, tempport);
+                                        serverList.add(currentServer);
+                                        tvCurrServ.setText(currentServer.toString());
+                                    }
+                                });
+                                alert.show();
                             }
                         });
                         alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -304,7 +381,20 @@ public class MyActivity extends Activity {
     public boolean isConnected(){
         ConnectivityManager connMgr = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
+        WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        homeWifi = false;
+        if (WifiInfo.getDetailedStateOf(wifiInfo.getSupplicantState()) == NetworkInfo.DetailedState.CONNECTED) {
+            String ssid = wifiInfo.getSSID();
+            if (ssid.equals(homeWifiSSID)) {
+                homeWifi = true;
+            }
+        }
+
         return (networkInfo != null && networkInfo.isConnected());
     }
+
+
 
 }
