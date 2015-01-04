@@ -385,12 +385,19 @@ public class MyActivity extends Activity {
         WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         homeWifi = false;
-        if (WifiInfo.getDetailedStateOf(wifiInfo.getSupplicantState()) == NetworkInfo.DetailedState.CONNECTED) {
-            String ssid = wifiInfo.getSSID();
-            if (ssid.equals(homeWifiSSID)) {
-                homeWifi = true;
-            }
+        String ssid = wifiInfo.getSSID();
+        Log.d("fnest", "current ssid " + ssid);
+        Log.d("fnest", "home ssid " + "\"" + homeWifiSSID + "\"");
+        if (ssid.equals("\"" + homeWifiSSID + "\"")) {
+            homeWifi = true;
         }
+//        {
+//            Log.d("fnest", WifiInfo.getDetailedStateOf(wifiInfo.getSupplicantState()).toString());
+//            Log.d("fnest", wifiInfo.getSSID());
+//            Log.d("fnest", wifiInfo.getBSSID());
+//            Log.d("fnest", wifiInfo.getMacAddress());
+//
+//        }
 
         return (networkInfo != null && networkInfo.isConnected());
     }
